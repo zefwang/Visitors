@@ -1,10 +1,14 @@
-interface ILo<T> {}
-class MtLo<T> implements ILo<T> {}
-class ConsLo<T> implements ILo<T> {
+interface IList<T> {
+}
+
+class MtList<T> implements IList<T> {
+}
+
+class ConsList<T> implements IList<T> {
   T first;
-  ILo<T> rest;
-  
-  ConsLo(T first, ILo<T> rest) {
+  IList<T> rest;
+
+  ConsList(T first, IList<T> rest) {
     this.first = first;
     this.rest = rest;
   }
@@ -12,9 +16,18 @@ class ConsLo<T> implements ILo<T> {
 
 class Course {
   String name;
-  ILo<Course> prereqs;
+  IList<Course> prereqs;
+
+  Course(String name, IList<Course> prereqs) {
+    this.name = name;
+    this.prereqs = prereqs;
+  }
 }
 
 interface IFunc<A, R> {
-  R apply(R arg);
+  R apply(A arg);
+}
+
+interface IListVisitor<T, R> extends IFunc<Course, R>{
+  R apply(Course arg);
 }
