@@ -51,6 +51,10 @@ class Course {
     return this.name.equals(target) || this.hasPrereq(target);
     // The current prereq's name and it's prereqs
   }
+
+  boolean hasPrereqOrMap(String target) {
+    return new OrMap(new SameName(target)).apply(this);
+  }
 }
 
 interface IFunc<A, R> {
@@ -96,10 +100,11 @@ class HasPrereq implements IPred<Course> {
 
   // Method calls the helper to determine if list is Mt or Cons
   public Boolean apply(Course arg) {
-    return new HasReqHelper(target).apply(arg);
+    return new HasReqHelper(this.target).apply(arg);
   }
 }
 
+// The IListVisitor that does all the work.
 class HasReqHelper implements IListVisitor<Course, Boolean> {
   String target;
 
@@ -120,6 +125,40 @@ class HasReqHelper implements IListVisitor<Course, Boolean> {
   // Determines if the list of prereqs contains the string with the given target
   public Boolean forCons(ConsList<Course> arg) {
     return arg.first.hasName(target) || arg.rest.accept(this);
+  }
+}
+
+// The generic OrMap that takes an IPred<X> to check against a list.
+class OrMap<T> implements IListVisitor<Course, Boolean> {
+  IPred<Course> predicate;
+
+  OrMap(IPred<Course> predicate) {
+    this.predicate = predicate;
+  }
+
+  public Boolean apply(Course arg) {
+    return arg.prereqs.accept(this);
+  }
+
+  public Boolean forMt(MtList<Course> arg) {
+    return false;
+  }
+
+  public Boolean forCons(ConsList<Course> arg) {
+    return this.predicate.apply(arg.first) || arg.rest.accept(this);
+  }
+}
+
+// The IPred<X> that would fed to OrMap to imitate HasPrereq
+class SameName implements IPred<Course> {
+  String name;
+
+  SameName(String name) {
+    this.name = name;
+  }
+
+  public Boolean apply(Course arg) {
+    return arg.name.equals(this.name) || new OrMap(new SameName(this.name)).apply(arg);
   }
 }
 
@@ -188,4 +227,17 @@ class ExamplesCourses {
         && t.checkExpect(new HasReqHelper("CS 1").forCons(cList1And2), true)
         && t.checkExpect(new HasReqHelper("CS 2").forCons(cList34And5), true);
   }
+  // tests for the OrMap implementation of HasPrereq
+
+  boolean testOrMap(Tester t) {
+    return t.checkExpect(this.c7.hasPrereqOrMap("CS 1"), true)
+        && t.checkExpect(this.c2.hasPrereqOrMap("CS 2"), false)
+        && t.checkExpect(this.c3.hasPrereqOrMap("CS 1"), true)
+        && t.checkExpect(this.c4.hasPrereqOrMap("CS 1"), false)
+        && t.checkExpect(this.c6.hasPrereqOrMap("CS 1"), true)
+        && t.checkExpect(this.c6.hasPrereqOrMap("CS 5"), true)
+        && t.checkExpect(this.c7.hasPrereqOrMap("CS 5"), true)
+        && t.checkExpect(this.c5.hasPrereqOrMap("CS 2"), false);
+  }
+
 }
