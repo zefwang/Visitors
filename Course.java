@@ -152,4 +152,11 @@ class ExamplesCourses {
         && t.checkExpect(c6.hasPrereq("CS 1"), true) && t.checkExpect(c7.hasPrereq("CS 5"), true)
         && t.checkExpect(c7.hasPrereq("CS 2"), true) && t.checkExpect(c7.hasPrereq("CS 0"), false);
   }
+
+  boolean testHasName(Tester t) {
+    return t.checkExpect(c1.hasName("CS 1"), true) && t.checkExpect(c1.hasName("CS 2"), false)
+        && t.checkExpect(c3.hasName("CS 1"), true) && t.checkExpect(c3.hasName("CS 4"), false)
+        && t.checkExpect(c5.hasName("CS 1"), false) && t.checkExpect(c6.hasName("CS 2"), true)
+        && t.checkExpect(c7.hasName("CS 5"), true) && t.checkExpect(c7.hasName("CS 8"), false);
+  }
 }
