@@ -124,17 +124,17 @@ class HasReqHelper implements IListVisitor<Course, Boolean> {
 }
 
 class ExamplesCourses {
-  Course c1 = new Course("CS 1", new MtList<Course>());
-  Course c2 = new Course("CS 2", new MtList<Course>());
-  IList<Course> cList1And2 = new ConsList<Course>(c2,
-      new ConsList<Course>(c1, new MtList<Course>()));
+  MtList<Course> empty = new MtList<Course>();
+  Course c1 = new Course("CS 1", empty);
+  Course c2 = new Course("CS 2", empty);
+  ConsList<Course> cList1And2 = new ConsList<Course>(c2, new ConsList<Course>(c1, empty));
   Course c3 = new Course("CS 3", cList1And2);
-  Course c4 = new Course("CS 4", new MtList<Course>());
-  Course c5 = new Course("CS 5", new MtList<Course>());
-  IList<Course> cList34And5 = new ConsList<Course>(c3,
-      new ConsList<Course>(c4, new ConsList<Course>(c5, new MtList<Course>())));
+  Course c4 = new Course("CS 4", empty);
+  Course c5 = new Course("CS 5", empty);
+  ConsList<Course> cList34And5 = new ConsList<Course>(c3,
+      new ConsList<Course>(c4, new ConsList<Course>(c5, empty)));
   Course c6 = new Course("CS 6", cList34And5);
-  Course c7 = new Course("CS 7", new ConsList<Course>(c6, new MtList<Course>()));
+  Course c7 = new Course("CS 7", new ConsList<Course>(c6, empty));
 
   // Tests for the getDeepestPathLength() method
   boolean testDeepestPathLength(Tester t) {
@@ -153,10 +153,39 @@ class ExamplesCourses {
         && t.checkExpect(c7.hasPrereq("CS 2"), true) && t.checkExpect(c7.hasPrereq("CS 0"), false);
   }
 
+  // Tests for the hasName() method
   boolean testHasName(Tester t) {
     return t.checkExpect(c1.hasName("CS 1"), true) && t.checkExpect(c1.hasName("CS 2"), false)
         && t.checkExpect(c3.hasName("CS 1"), true) && t.checkExpect(c3.hasName("CS 4"), false)
         && t.checkExpect(c5.hasName("CS 1"), false) && t.checkExpect(c6.hasName("CS 2"), true)
         && t.checkExpect(c7.hasName("CS 5"), true) && t.checkExpect(c7.hasName("CS 8"), false);
+  }
+
+  // Tests for the accept() method
+  boolean testAccept(Tester t) {
+    return t.checkExpect(empty.accept(new DeepestPathLength()), 0)
+        && t.checkExpect(cList1And2.accept(new DeepestPathLength()), 1)
+        && t.checkExpect(cList34And5.accept(new DeepestPathLength()), 2);
+  }
+
+  boolean testApply(Tester t) {
+    return t.checkExpect(new DeepestPathLength().apply(c1), 0)
+        && t.checkExpect(new DeepestPathLength().apply(c7), 3)
+        && t.checkExpect(new HasPrereq("CS 1").apply(c2), false)
+        && t.checkExpect(new HasPrereq("CS 1").apply(c7), true)
+        && t.checkExpect(new HasPrereq("CS 8").apply(c7), false);
+  }
+
+  boolean testForMt(Tester t) {
+    return t.checkExpect(new DeepestPathLength().forMt(empty), 0)
+        && t.checkExpect(new HasReqHelper("CS 1").forMt(empty), false);
+    // forMt() is not in HasPrereq because we used a helper class
+  }
+
+  boolean testForCons(Tester t) {
+    return t.checkExpect(new DeepestPathLength().forCons(cList1And2), 1)
+        && t.checkExpect(new DeepestPathLength().forCons(cList34And5), 2)
+        && t.checkExpect(new HasReqHelper("CS 1").forCons(cList1And2), true)
+        && t.checkExpect(new HasReqHelper("CS 2").forCons(cList34And5), true);
   }
 }
