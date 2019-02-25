@@ -89,7 +89,7 @@ interface IPred<X> extends IFunc<X, Boolean> {
 class HasPrereq implements IPred<Course> {
   String target;
 
-//A HasPrereq instance takes in the target course name
+  // A HasPrereq instance takes in the target course name
   HasPrereq(String target) {
     this.target = target;
   }
