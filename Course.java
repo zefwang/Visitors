@@ -34,7 +34,7 @@ class Course {
   }
 
   int getDeepestPathLength() {
-    return this.prereqs.accept(new DeepestPathLength());
+    return new DeepestPathLength().apply(this);
   }
 
   boolean hasPrereq(String target) {
@@ -52,23 +52,23 @@ interface IFunc<A, R> {
   R apply(A arg);
 }
 
-interface IListVisitor<T, R> extends IFunc<IList<T>, R> {
+interface IListVisitor<T, R> extends IFunc<T, R> {
   R forMt(MtList<T> arg);
 
   R forCons(ConsList<T> consList);
 }
 
 class DeepestPathLength implements IListVisitor<Course, Integer> {
-  public Integer apply(IList<Course> arg) {
-    return arg.accept(this);
-  }
-
   public Integer forMt(MtList<Course> arg) {
     return 0;
   }
 
   public Integer forCons(ConsList<Course> arg) {
     return Math.max(1 + arg.first.getDeepestPathLength(), arg.rest.accept(new DeepestPathLength()));
+  }
+
+  public Integer apply(Course arg) {
+    return arg.prereqs.accept(this);
   }
 }
 
@@ -83,7 +83,7 @@ class HasPrereq implements IPred<Course> {
   }
 
   public Boolean apply(Course arg) {
-    return new HasReqHelper(target).apply(arg.prereqs);
+    return new HasReqHelper(target).apply(arg);
   }
 }
 
@@ -94,8 +94,8 @@ class HasReqHelper implements IListVisitor<Course, Boolean> {
     this.target = target;
   }
 
-  public Boolean apply(IList<Course> arg) {
-    return arg.accept(this);
+  public Boolean apply(Course arg) {
+    return arg.prereqs.accept(this);
   }
 
   public Boolean forMt(MtList<Course> arg) {
@@ -105,8 +105,9 @@ class HasReqHelper implements IListVisitor<Course, Boolean> {
   public Boolean forCons(ConsList<Course> arg) {
     return arg.first.hasName(target) || arg.rest.accept(this);
   }
-
 }
+
+class OrMap implements IPred<Course> {}
 
 class ExamplesCourses {
   Course c1 = new Course("CS 1", new MtList<Course>());
